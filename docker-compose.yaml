@@ -1,0 +1,42 @@
+version: '3'
+
+volumes:
+  postgres:
+
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: portal
+      POSTGRES_USER: portal
+      POSTGRES_PASSWORD: portal
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  redis:
+    image: redis
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+  portal:
+    image: ghcr.io/shitcloud/portal
+    restart: always
+    environment:
+      KNEX_CONNECTION_HOST: postgres
+      KNEX_CONNECTION_DATABASE: portal
+      KNEX_CONNECTION_USER: portal
+      KNEX_CONNECTION_PASSWORD: portal
+      REDIS_HOST: redis
+      MICRO_HOST: rabbitmq
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    ports:
+      - 3000:3000
